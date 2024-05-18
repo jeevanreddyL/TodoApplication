@@ -3,8 +3,6 @@ package com.example.todoapplication
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,7 +36,6 @@ class MainActivity : ComponentActivity() {
             todoApiService = todoApiService,
             todoDao = AppDatabase.getDatabase(context =  applicationContext).todoDao()
         )
-      //  enableEdgeToEdge()
         todoViewModel =  TodoViewModel(todoRepository = todoRepository)
         setContent {
             TodoApplicationTheme {
@@ -73,27 +70,24 @@ fun TodoItem(todo: Todo, onTodoStatusChanged: (Todo) -> Unit) {
 @Composable
 fun TodoListScreen(todoViewModel: TodoViewModel) {
     val todos by todoViewModel.todos.collectAsState()
-
-    Column {
-        Text("Pending", style = MaterialTheme.typography.headlineMedium)
-        TodoList(todos.filter { !it.completed }, todoViewModel)
-
-        Text("Completed", style = MaterialTheme.typography.headlineMedium)
-        TodoList(todos.filter { it.completed }, todoViewModel)
-    }
-}
-
-
-@Composable
-fun TodoList(todos: List<Todo>, todoViewModel: TodoViewModel) {
+    val (pendingTodos, completedTodos) = todos.partition { !it.completed }
     LazyColumn {
-        items(todos) { todo ->
+        item {
+            Text("Pending", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(8.dp))
+        }
+        items(pendingTodos) { todo ->
             TodoItem(todo = todo, onTodoStatusChanged = { updatedTodo ->
                 todoViewModel.updateTodoStatus(updatedTodo)
             })
         }
+        item {
+            Text("Completed", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(8.dp))
+        }
+        items(completedTodos) { todo ->
+            TodoItem(todo = todo, onTodoStatusChanged = { updatedTodo ->
+                todoViewModel.updateTodoStatus(updatedTodo)
+            })
+        }
+
     }
 }
-
-
-
